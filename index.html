@@ -1,0 +1,94 @@
+<html>
+	<head>
+		<title>Multicomplete</title>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
+		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+		<script type="text/javascript" src="jquery.multicomplete.js"></script>
+	</head>
+	<body>
+		<!-- mutual initialisation is end user duty -->
+		<input type="text" class="view" value='Erlang, Python' />
+		<input type="text" class="ids"  value='{"Erlang":"10","Python":"19"}' />
+
+		<script type="text/javascript">
+			 // data requirements - value field - used in dropdown box view
+			 var DATA = [
+				{ id: '01', value: "ActionScript" },
+				{ id: '02', value: "AppleScript" },
+				{ id: '03', value: "Asp" },
+				{ id: '04', value: "BASIC" },
+				{ id: '05', value: "C" },
+				{ id: '06', value: "C++" },
+				{ id: '07', value: "Clojure" },
+				{ id: '08', value: "COBOL" },
+				{ id: '09', value: "ColdFusion" },
+				{ id: '10', value: "Erlang" },
+				{ id: '11', value: "Fortran" },
+				{ id: '12', value: "Groovy" },
+				{ id: '13', value: "Haskell" },
+				{ id: '14', value: "Java" },
+				{ id: '15', value: "JavaScript" },
+				{ id: '16', value: "Lisp" },
+				{ id: '17', value: "Perl" },
+				{ id: '18', value: "PHP" },
+				{ id: '19', value: "Python" },
+				{ id: '20', value: "Ruby" },
+				{ id: '21', value: "Scala" },
+				{ id: '22', value: "Scheme" }
+			];
+
+			var lastQuery = [];
+
+			var inp_view = $('.view');
+			var inp_ids  = $('.ids');
+			
+			var ids = JSON.parse( $('.ids').val() )
+
+			console.log('start');
+			$(inp_view).multicomplete({
+				ids: ids,
+				minLength: 1,
+				store: function (ui, data) {
+					// calls when selected list of items have chenged
+					// impements store
+					console.log('store', data);
+					inp_ids.val(JSON.stringify(data));
+				},
+				query: function (request, response) {
+					// calls on query available list for pattern
+					console.log('query', request);
+					var array = DATA;
+					var matcher = new RegExp( $.ui.autocomplete.escapeRegex(request), "i" );
+					lastQuery = $.grep( array, function(value) {
+						return matcher.test( value.value );
+					});
+					response( lastQuery );
+				},
+				dereference: function (request, response) {
+					// calls when plugin wants to check some entered stings for id 
+					// (for many reasons)
+					// request - special hash of hashes
+					// some info for substing with referenced element
+					console.log('dereference', request, lastQuery);
+					var rez = {}; // result id array
+					var out = {}; // array of  unrecognized entities
+					for(var i in request) {
+						// for full search lastQuery -> DATA
+						for (var j = lastQuery.length - 1; j >= 0; j--) {
+							if(lastQuery[j].value == request[i].value) {
+								rez[i] = lastQuery[j].id;
+								break;
+							};
+						};
+						if(rez[i] === undefined) out[i] = i;
+					};
+					response([rez, out]);
+				},
+			}); // multicomplete
+
+		</script>
+
+
+	</body>
+</html>
